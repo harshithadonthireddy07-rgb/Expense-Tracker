@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Expense Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+
+    <div class="app">
+
+        <!-- Header -->
+        <div class="header">
+            <h1>💰 Student Expense Tracker</h1>
+            <p>Track your spending and stay within budget!</p>
+        </div>
+
+        <!-- Budget + Summary Row -->
+        <div class="summary-row">
+            <div class="summary-card">
+                <div class="summary-label">Monthly Budget</div>
+                <div class="summary-value" id="budget-display">₹0</div>
+                <input type="number" id="budget-input" placeholder="Set budget..." />
+                <button onclick="setBudget()">Set Budget</button>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Total Spent</div>
+                <div class="summary-value" id="total-spent">₹0</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Remaining</div>
+                <div class="summary-value" id="remaining">₹0</div>
+            </div>
+        </div>
+
+        <!-- Alert -->
+        <div class="alert" id="alert" style="display:none;">
+            ⚠️ Warning! You have exceeded your monthly budget!
+        </div>
+
+        <!-- Add Expense Form -->
+        <div class="form-card">
+            <h2>Add New Expense</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="description" placeholder="e.g. Lunch, Books..." />
+                </div>
+                <div class="form-group">
+                    <label>Amount (₹)</label>
+                    <input type="number" id="amount" placeholder="e.g. 150" />
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="category">
+                        <option value="Food">🍔 Food</option>
+                        <option value="Transport">🚌 Transport</option>
+                        <option value="Books">📚 Books</option>
+                        <option value="Entertainment">🎮 Entertainment</option>
+                        <option value="Shopping">🛍️ Shopping</option>
+                        <option value="Other">📌 Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button class="add-btn" onclick="addExpense()">+ Add Expense</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart + Expenses List -->
+        <div class="bottom-row">
+
+            <!-- Pie Chart -->
+            <div class="chart-card">
+                <h2>Spending by Category</h2>
+                <div class="chart-container">
+                    <canvas id="pie-chart"></canvas>
+                </div>
+                <p class="no-data" id="no-chart-data">Add expenses to see chart</p>
+            </div>
+
+            <!-- Expenses List -->
+            <div class="list-card">
+                <div class="list-header">
+                    <h2>Recent Expenses</h2>
+                    <button class="clear-btn" onclick="clearAll()">Clear All</button>
+                </div>
+                <div id="expense-list">
+                    <p class="no-data">No expenses yet. Add one above!</p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+
+</body>
+</html>
