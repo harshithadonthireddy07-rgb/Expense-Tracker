@@ -4,88 +4,691 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Expense Tracker</title>
-    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+        body {
+            background: #0a0a0f;
+            min-height: 100vh;
+            padding: 30px 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.08) 0%, transparent 70%);
+            top: -100px;
+            left: -100px;
+            pointer-events: none;
+            animation: drift 10s ease-in-out infinite;
+        }
+
+        @keyframes drift {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(30px, 30px); }
+        }
+
+        .app { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .header-left h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .header-left p { color: #475569; font-size: 14px; margin-top: 4px; }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .welcome-text { color: #94a3b8; font-size: 14px; }
+        .welcome-text span { color: #ffffff; font-weight: 600; }
+
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+        }
+
+        .profile-btn {
+            background: rgba(124, 58, 237, 0.15);
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            color: #a78bfa;
+        }
+
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+
+        .nav-btn:hover { transform: translateY(-1px); opacity: 0.85; }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px;
+            padding: 6px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .tab.active {
+            background: rgba(124, 58, 237, 0.2);
+            color: #a78bfa;
+        }
+
+        /* Tab Content */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Summary Row */
+        .summary-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .summary-label {
+            color: #475569;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 10px;
+        }
+
+        .summary-value {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-bottom: 14px;
+            background: linear-gradient(135deg, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .summary-card input[type="number"] {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .summary-card button {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+            border: none;
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        /* Alert */
+        .alert {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 14px;
+            padding: 16px 20px;
+            color: #f87171;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        /* Form Card */
+        .form-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+
+        .form-card h2 { color: #ffffff; font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 14px;
+            align-items: end;
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+
+        .form-group label {
+            color: #475569;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: #7c3aed;
+            background: rgba(124, 58, 237, 0.08);
+        }
+
+        .form-group input::placeholder { color: #334155; }
+        .form-group select option { background: #1e1b2e; color: #ffffff; }
+
+        .add-btn {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #7c3aed, #2563eb);
+            border: none;
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .add-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(124, 58, 237, 0.35); }
+
+        /* Filter Row */
+        .filter-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            color: #475569;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-btn.active {
+            background: rgba(124, 58, 237, 0.15);
+            border-color: rgba(124, 58, 237, 0.3);
+            color: #a78bfa;
+        }
+
+        .filter-select {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .filter-select option { background: #1e1b2e; }
+
+        /* Bottom Row */
+        .bottom-row {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 20px;
+        }
+
+        .chart-card, .list-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 20px;
+            padding: 28px;
+        }
+
+        .chart-card h2, .list-card h2 {
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .chart-container { width: 100%; max-width: 260px; margin: 0 auto; }
+
+        .no-data { color: #334155; font-size: 13px; text-align: center; margin-top: 16px; }
+
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .clear-btn {
+            padding: 7px 14px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            color: #f87171;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        /* Expense Items */
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .expense-left { display: flex; align-items: center; gap: 12px; }
+
+        .expense-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .expense-desc { color: #ffffff; font-size: 14px; font-weight: 500; }
+        .expense-cat { color: #475569; font-size: 12px; margin-top: 2px; }
+
+        .expense-right { display: flex; align-items: center; gap: 12px; }
+        .expense-amount { color: #ffffff; font-size: 15px; font-weight: 600; }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #334155;
+            font-size: 16px;
+            cursor: pointer;
+            transition: color 0.3s;
+            padding: 4px;
+        }
+
+        .delete-btn:hover { color: #f87171; }
+
+        /* Category colors */
+        .cat-food { background: rgba(251, 146, 60, 0.15); }
+        .cat-transport { background: rgba(59, 130, 246, 0.15); }
+        .cat-books { background: rgba(16, 185, 129, 0.15); }
+        .cat-entertainment { background: rgba(168, 85, 247, 0.15); }
+        .cat-shopping { background: rgba(236, 72, 153, 0.15); }
+        .cat-other { background: rgba(148, 163, 184, 0.15); }
+
+        .remaining-safe {
+            background: linear-gradient(135deg, #10b981, #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .remaining-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .remaining-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Category Budget Section */
+        .cat-budget-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .cat-budget-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .cat-budget-label {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cat-budget-item input {
+            width: 100%;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        /* History Chart */
+        .history-chart-container {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+
+        .history-chart-container h2 {
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        /* Profile Page */
+        .profile-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #7c3aed, #2563eb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 16px;
+        }
+
+        .profile-name {
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .profile-email {
+            color: #475569;
+            font-size: 14px;
+            margin-bottom: 28px;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .profile-stat {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .profile-stat-value {
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #7c3aed, #2563eb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .profile-stat-label {
+            color: #475569;
+            font-size: 11px;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .save-btn {
+            padding: 12px 32px;
+            background: linear-gradient(135deg, #7c3aed, #2563eb);
+            border: none;
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .save-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(124, 58, 237, 0.35); }
+    </style>
 </head>
 <body>
-
     <div class="app">
 
         <!-- Header -->
         <div class="header">
-            <h1>💰 Student Expense Tracker</h1>
-            <p>Track your spending and stay within budget!</p>
-        </div>
-
-        <!-- Budget + Summary Row -->
-        <div class="summary-row">
-            <div class="summary-card">
-                <div class="summary-label">Monthly Budget</div>
-                <div class="summary-value" id="budget-display">₹0</div>
-                <input type="number" id="budget-input" placeholder="Set budget..." />
-                <button onclick="setBudget()">Set Budget</button>
+            <div class="header-left">
+                <h1>💰 Student Expense Tracker</h1>
+                <p>Track your spending and stay within budget!</p>
             </div>
-            <div class="summary-card">
-                <div class="summary-label">Total Spent</div>
-                <div class="summary-value" id="total-spent">₹0</div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-label">Remaining</div>
-                <div class="summary-value" id="remaining">₹0</div>
+            <div class="header-right">
+                <span class="welcome-text">👋 Welcome, <span id="username"></span></span>
+                <button class="nav-btn profile-btn" onclick="showTab('profile')">👤 Profile</button>
+                <button class="nav-btn logout-btn" onclick="logout()">Logout</button>
             </div>
         </div>
 
-        <!-- Alert -->
-        <div class="alert" id="alert" style="display:none;">
-            ⚠️ Warning! You have exceeded your monthly budget!
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('dashboard')">📊 Dashboard</button>
+            <button class="tab" onclick="showTab('expenses')">💸 Expenses</button>
+            <button class="tab" onclick="showTab('budgets')">🎯 Budgets</button>
+            <button class="tab" onclick="showTab('history')">📈 History</button>
+            <button class="tab" onclick="showTab('profile')">👤 Profile</button>
         </div>
 
-        <!-- Add Expense Form -->
-        <div class="form-card">
-            <h2>Add New Expense</h2>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Description</label>
-                    <input type="text" id="description" placeholder="e.g. Lunch, Books..." />
+        <!-- DASHBOARD TAB -->
+        <div class="tab-content active" id="tab-dashboard">
+
+            <!-- Summary Row -->
+            <div class="summary-row">
+                <div class="summary-card">
+                    <div class="summary-label">Monthly Budget</div>
+                    <div class="summary-value" id="budget-display">₹0</div>
+                    <input type="number" id="budget-input" placeholder="Set budget..." />
+                    <button onclick="setBudget()">Set Budget</button>
                 </div>
-                <div class="form-group">
-                    <label>Amount (₹)</label>
-                    <input type="number" id="amount" placeholder="e.g. 150" />
+                <div class="summary-card">
+                    <div class="summary-label">Total Spent</div>
+                    <div class="summary-value" id="total-spent">₹0</div>
                 </div>
-                <div class="form-group">
-                    <label>Category</label>
-                    <select id="category">
-                        <option value="Food">🍔 Food</option>
-                        <option value="Transport">🚌 Transport</option>
-                        <option value="Books">📚 Books</option>
-                        <option value="Entertainment">🎮 Entertainment</option>
-                        <option value="Shopping">🛍️ Shopping</option>
-                        <option value="Other">📌 Other</option>
-                    </select>
+                <div class="summary-card">
+                    <div class="summary-label">Remaining</div>
+                    <div class="summary-value" id="remaining">₹0</div>
                 </div>
-                <div class="form-group">
-                    <label>&nbsp;</label>
-                    <button class="add-btn" onclick="addExpense()">+ Add Expense</button>
+            </div>
+
+            <!-- Alert -->
+            <div class="alert" id="alert">
+                ⚠️ Warning! You have exceeded your monthly budget!
+            </div>
+
+            <!-- Bottom Row -->
+            <div class="bottom-row">
+                <div class="chart-card">
+                    <h2>Spending by Category</h2>
+                    <div class="chart-container">
+                        <canvas id="pie-chart"></canvas>
+                    </div>
+                    <p class="no-data" id="no-chart-data">Add expenses to see chart</p>
+                </div>
+
+                <div class="list-card">
+                    <div class="list-header">
+                        <h2>Recent Expenses</h2>
+                        <button class="clear-btn" onclick="clearAll()">Clear All</button>
+                    </div>
+                    <div id="expense-list-dashboard">
+                        <p class="no-data">No expenses yet!</p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Chart + Expenses List -->
-        <div class="bottom-row">
+        <!-- EXPENSES TAB -->
+        <div class="tab-content" id="tab-expenses">
 
-            <!-- Pie Chart -->
-            <div class="chart-card">
-                <h2>Spending by Category</h2>
-                <div class="chart-container">
-                    <canvas id="pie-chart"></canvas>
+            <!-- Add Expense Form -->
+            <div class="form-card">
+                <h2>Add New Expense</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" id="description" placeholder="e.g. Lunch, Books..." />
+                    </div>
+                    <div class="form-group">
+                        <label>Amount (₹)</label>
+                        <input type="number" id="amount" placeholder="e.g. 150" />
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="category">
+                            <option value="Food">🍔 Food</option>
+                            <option value="Transport">🚌 Transport</option>
+                            <option value="Books">📚 Books</option>
+                            <option value="Entertainment">🎮 Entertainment</option>
+                            <option value="Shopping">🛍️ Shopping</option>
+                            <option value="Other">📌 Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button class="add-btn" onclick="addExpense()">+ Add Expense</button>
+                    </div>
                 </div>
-                <p class="no-data" id="no-chart-data">Add expenses to see chart</p>
             </div>
 
-            <!-- Expenses List -->
+            <!-- Filters -->
+            <div class="filter-row">
+                <button class="filter-btn active" onclick="filterByTime('all', this)">All Time</button>
+                <button class="filter-btn" onclick="filterByTime('today', this)">Today</button>
+                <button class="filter-btn" onclick="filterByTime('week', this)">This Week</button>
+                <button class="filter-btn" onclick="filterByTime('month', this)">This Month</button>
+                <select class="filter-select" onchange="filterByCategory(this.value)">
+                    <option value="all">All Categories</option>
+                    <option value="Food">🍔 Food</option>
+                    <option value="Transport">🚌 Transport</option>
+                    <option value="Books">📚 Books</option>
+                    <option value="Entertainment">🎮 Entertainment</option>
+                    <option value="Shopping">🛍️ Shopping</option>
+                    <option value="Other">📌 Other</option>
+                </select>
+            </div>
+
+            <!-- Full Expense List -->
             <div class="list-card">
                 <div class="list-header">
-                    <h2>Recent Expenses</h2>
+                    <h2>All Expenses</h2>
                     <button class="clear-btn" onclick="clearAll()">Clear All</button>
                 </div>
                 <div id="expense-list">
@@ -95,9 +698,59 @@
 
         </div>
 
+        <!-- BUDGETS TAB -->
+        <div class="tab-content" id="tab-budgets">
+            <div class="form-card">
+                <h2>🎯 Category-wise Budget Limits</h2>
+                <p style="color: #475569; font-size: 13px; margin-bottom: 20px;">Set spending limits for each category to stay on track!</p>
+
+                <div class="cat-budget-grid" id="cat-budget-grid">
+                    <!-- Filled by JS -->
+                </div>
+
+                <button class="add-btn" style="margin-top: 20px; max-width: 200px;" onclick="saveCategoryBudgets()">
+                    💾 Save Budgets
+                </button>
+            </div>
+        </div>
+
+        <!-- HISTORY TAB -->
+        <div class="tab-content" id="tab-history">
+            <div class="history-chart-container">
+                <h2>📈 Monthly Spending History (Last 6 Months)</h2>
+                <canvas id="history-chart" height="100"></canvas>
+                <p class="no-data" id="no-history-data" style="display:none;">No history data yet!</p>
+            </div>
+        </div>
+
+        <!-- PROFILE TAB -->
+        <div class="tab-content" id="tab-profile">
+            <div class="profile-card">
+                <div class="avatar" id="avatar-icon">😊</div>
+                <div class="profile-name" id="profile-name"></div>
+                <div class="profile-email" id="profile-email"></div>
+
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="stat-total">₹0</div>
+                        <div class="profile-stat-label">Total Spent</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="stat-count">0</div>
+                        <div class="profile-stat-label">Expenses</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="stat-avg">₹0</div>
+                        <div class="profile-stat-label">Avg/Expense</div>
+                    </div>
+                </div>
+
+                <button class="save-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+
     </div>
 
     <script src="app.js"></script>
-
 </body>
 </html>
